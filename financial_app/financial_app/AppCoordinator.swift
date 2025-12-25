@@ -13,8 +13,9 @@ class AppCoordinator: Coordinator {
     
     @Published var navigationPath = NavigationPath() // Used for navigation stacks
     @Published var currentSheet: Destination?      // Used for sheets
-    @Published var currentModal: Destination?      // Used for full-screen covers
+    @Published var currentModal: Destination?
     @Published var currentAlert: AlertItem?        // Used for alerts/popups
+    @Published var currentToast: Toast?
     
     // A simplified way to store alert data
     struct AlertItem: Identifiable {
@@ -74,6 +75,16 @@ class AppCoordinator: Coordinator {
                   message: alertItem.message,
                   dismissButton: alertItem.dismissButton)
         }
+        .overlay(alignment: .top) { // Use overlay for positioning
+            if let toast = currentToast {
+                ToastView(toast: toast)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                // Animation applied only to the toast's appearance/disappearance
+                    .animation(.easeInOut(duration: 0.3), value: currentToast)
+            }
+        }
+        // Set animation value on the entire contentView for the overlay change
+        .animation(.default, value: currentToast) //
     }
     
     func start() {
@@ -93,6 +104,12 @@ class AppCoordinator: Coordinator {
                 isAuthenticated = true
                 navigationPath = NavigationPath()
             }
+        case .registration:
+            break
+            //            if !AuthManager.shared.isAuthenticated {
+            //                isAuthenticated = false
+            //                navigationPath = NavigationPath()
+            //            }
         case .presentSheet(let childDestination):
             self.currentSheet = childDestination
         case .presentModal(let childDestination):
@@ -111,8 +128,36 @@ class AppCoordinator: Coordinator {
             LoginView(viewModel: LoginViewModel(coordinator: self))
         case .userAccounts:
             UserAccountsView(viewModel: UserAccountsViewModel(coordinator: self))
+        case .registration:
+            RegistrationView(viewModel: RegistrationViewModel(coordinator: self))
         default:
             Text("Unknown Destination")
         }
+    }
+    
+    func dismissModal() {
+        self.currentModal = nil
+        
+    }
+    
+    // MARK: - Toast Logic
+    
+    func presentToast(style: Toast.ToastStyle, message: String) {
+        let newToast = Toast(style: style, message: message)
+        self.currentToast = newToast
+        DispatchQueue.main.asyncAfter(deadline: .now() + newToast.duration) { [weak self] in
+            if self?.currentToast == newToast {
+                self?.currentToast = nil
+            }
+        }
+    }
+    
+    // Convenience methods for ViewModels
+    func presentSuccessToast(message: String) {
+        presentToast(style: .success, message: message)
+    }
+    
+    func presentFailureToast(message: String) {
+        presentToast(style: .failure, message: message)
     }
 }

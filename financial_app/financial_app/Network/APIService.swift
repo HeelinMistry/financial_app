@@ -96,9 +96,14 @@ class APIService {
             .flatMap { apiResponse -> AnyPublisher<T, APIError> in
                 if apiResponse.success {
                     // Success! Return the nested data
-                    return Just(apiResponse.data)
-                        .setFailureType(to: APIError.self) // Set failure type for consistency
-                        .eraseToAnyPublisher()
+                    if let data = apiResponse.data {
+                        return Just(data)
+                            .setFailureType(to: APIError.self) 
+                            .eraseToAnyPublisher()
+                    } else {
+                        return Fail(error: APIError.apiFailure(message: "No data returned from the API."))
+                            .eraseToAnyPublisher()
+                    }
                 } else {
                     // API call failed even though HTTP status was 2xx (e.g., login failed)
                     return Fail(error: APIError.apiFailure(message: apiResponse.message ?? ""))

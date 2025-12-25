@@ -46,6 +46,10 @@ struct LoginView: View {
                 }
                 .disabled(viewModel.isLoginButtonDisabled)
                 
+                Button("I don't have an account (Register)") {
+                    viewModel.coordinator?.navigate(to: .presentModal(destination: .registration))
+                }
+                .padding()
                 Spacer()
             }
             .padding()

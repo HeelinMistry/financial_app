@@ -16,16 +16,23 @@ protocol Coordinator: ObservableObject {
     // A function to handle navigation events triggered from ViewModels
     func start()
     func navigate(to destination: Destination)
+    
+    func dismissModal()
+    // MARK: - Toast Logic
+
+    func presentToast(style: Toast.ToastStyle, message: String)
+    
+    // Convenience methods for ViewModels
+    func presentSuccessToast(message: String)
+    func presentFailureToast(message: String)
 }
 
 // Global enum for all possible navigation routes in the app
 enum Destination: Hashable {
     case login
     case userAccounts
-//    case postsList
-//    case settings
+    case registration
     indirect case presentSheet(destination: Destination)
     indirect case presentModal(destination: Destination)
     case presentAlert(title: String, message: String)
-    // Add more cases for specific sheets/alerts/popups as needed
 }

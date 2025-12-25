@@ -16,8 +16,9 @@ enum HTTPMethod: String {
 
 enum APIEndpoint {
     case login(data: LoginData)
+    case register(data: LoginData)
     case userAccounts
-
+    
     // Base URL for your server
     private var baseURL: String { "http://localhost:3000/api/" }
     
@@ -27,6 +28,8 @@ enum APIEndpoint {
         switch self {
         case .login:
             return "users/login"
+        case .register:
+            return "users/register"
         case .userAccounts:
             return "accounts"
         }
@@ -34,7 +37,8 @@ enum APIEndpoint {
     
     var method: HTTPMethod {
         switch self {
-        case .login:
+        case .login,
+                .register:
             return .post
         case .userAccounts:
             return .get
@@ -49,6 +53,9 @@ enum APIEndpoint {
         case .post:
             switch self {
             case .login(let data):
+                let payload: [String: Any] = ["name": data.name]
+                return try? JSONSerialization.data(withJSONObject: payload, options: [])
+            case .register(let data):
                 let payload: [String: Any] = ["name": data.name]
                 return try? JSONSerialization.data(withJSONObject: payload, options: [])
             default:
@@ -73,7 +80,7 @@ enum APIEndpoint {
         if let token = AuthManager.shared.token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-
+        
         if let body = body {
             request.httpBody = body
         }

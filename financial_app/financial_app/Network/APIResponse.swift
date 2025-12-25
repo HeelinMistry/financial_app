@@ -11,7 +11,7 @@ import Foundation
 struct APIResponse<T: Decodable>: Decodable {
     let success: Bool
     let message: String?
-    let data: T
+    let data: T?
     
     // Custom Coding Keys to map JSON keys to struct properties
     private enum CodingKeys: String, CodingKey {
