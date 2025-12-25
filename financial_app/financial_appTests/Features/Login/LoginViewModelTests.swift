@@ -46,7 +46,7 @@ class LoginViewModelTests: XCTestCase {
     
     func testLogin_Success_SetsAuthTokenAndNavigates() {
         let expectedToken = "TEST_AUTH_TOKEN_12345"
-        let mockTokenResponse = TokenResponse(user: UserInfo(id: 1), token: expectedToken)
+        let mockTokenResponse = TokenResponse(token: expectedToken)
         mockAPIService.mockData = mockTokenResponse
         mockAPIService.shouldSucceed = true
         
