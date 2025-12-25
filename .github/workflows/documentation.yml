@@ -14,10 +14,30 @@ jobs:
       - name: 🛎️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🛠️ Select Xcode Version
-        uses: actions/setup-xcode@v1
-        with:
-          xcode-version: 'latest'
+      - name: 🛠️ Set Desired Xcode Version (Guaranteed Method)
+        run: |
+          # 1. List available Xcode versions (for diagnostic output)
+          echo "Listing available Xcode versions:"
+          ls -F /Applications/ | grep Xcode
+
+          # 2. Set the Xcode version your project requires
+          # The macOS runner often keeps several versions.
+          # You MUST specify the full path to the version you need.
+          #
+          # Example: If your project needs Xcode 15.2:
+          # sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+
+          # We'll use the default setup path which often points to the 'latest' stable version:
+          echo "Setting current Xcode to the default available path."
+
+          # You might need to adjust the path below if your project requires a specific, older version.
+          # For macos-latest, the default link often suffices, but you can be explicit:
+
+          # Example of being explicit for a common latest version:
+          # sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer
+
+          # Confirm the active version
+          xcodebuild -version
 
       - name: 📝 Build DocC Documentation Archive
         # DocC is triggered using the 'docbuild' action

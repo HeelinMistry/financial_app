@@ -10,7 +10,7 @@ on:
     branches:
       - main
       - develop
-      
+
 jobs:
   run-tests:
     runs-on: macos-latest
@@ -39,6 +39,7 @@ jobs:
 
       - name: 🏃 Run Unit Tests
         run: |
+          cd financial_app
           xcodebuild test \
             -scheme financial_app \
             -destination 'platform=iOS Simulator,name=iPhone 15' \
