@@ -112,7 +112,7 @@ class UserAccountsViewModelTests: XCTestCase {
             .sink { errorMessage in
                 
                 // 3. Assert (After pipeline delivers the error)
-                XCTAssertFalse(self.sut.isLoading, "Loading should be false after failure")\
+                XCTAssertFalse(self.sut.isLoading, "Loading should be false after failure")
                 XCTAssertEqual(errorMessage, mockError.localizedDescription, "Error message must match the mock error description")
                 XCTAssertTrue(self.sut.accounts.isEmpty, "Accounts array must remain empty on failure")
                 
