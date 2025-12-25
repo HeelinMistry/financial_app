@@ -7,7 +7,6 @@
 
 import Foundation
 import Combine
-@testable import financial_app
 
 class MockAPIService: APIServicing {
     
