@@ -22,7 +22,7 @@ jobs:
 
       - name: 🛠️ Select Xcode Version
         # Recommended action to ensure the correct Xcode version is used
-        uses: developer-tools/using-xcode-action@v3
+        uses: apple-actions/setup-xcode@v1
         with:
           # Match this to the version your project uses (e.g., 15.2)
           # Use 'latest' for the newest available version on the runner
