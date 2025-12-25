@@ -12,7 +12,7 @@ import Combine
 @MainActor
 class UserAccountsViewModelTests: XCTestCase {
     
-    var mockAPIService: APIServicing!
+    var mockAPIService: MockAPIService!
     var sut: UserAccountsViewModel!
     private var cancellables: Set<AnyCancellable>!
     
