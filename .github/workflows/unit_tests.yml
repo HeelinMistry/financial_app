@@ -10,29 +10,35 @@ on:
     branches:
       - main
       - develop
-
+      
 jobs:
   run-tests:
-    # macOS runners are required to run Xcode/Swift tests
     runs-on: macos-latest
 
     steps:
       - name: 🛎️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🛠️ Select Xcode Version
-        # Recommended action to ensure the correct Xcode version is used
-        uses: actions/setup-xcode@v1
-        with:
-          # Match this to the version your project uses (e.g., 15.2)
-          # Use 'latest' for the newest available version on the runner
-          xcode-version: 'latest'
+      - name: 🛠️ Set Desired Xcode Version (Guaranteed Method)
+        run: |
+          # Use 'latest' to select the default, OR specify a version (e.g., Xcode_15.2.app)
+          # We use 'sudo' and 'xcode-select' to switch the system link
+          echo "Listing available Xcode versions:"
+          ls -F /Applications/ | grep Xcode
+
+          # 🚨 FIX: Set the path to the desired Xcode version
+          # Assuming you want to use the default or the latest installed version:
+          # If you needed 15.2 specifically, you would use:
+          # sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+
+          # For macos-latest, the default is usually the newest stable one.
+          # We simply ensure the default is selected, or you can uncomment the line below.
+          # sudo xcode-select -s /Applications/Xcode_<YOUR_VERSION>.app/Contents/Developer
+
+          xcodebuild -version # Confirm which version is active
 
       - name: 🏃 Run Unit Tests
         run: |
-          cd financial_app
-          # Replace 'financial_app' with your project name or scheme name
-          # Replace 'financial_appTests' with your specific test target name
           xcodebuild test \
             -scheme financial_app \
             -destination 'platform=iOS Simulator,name=iPhone 15' \
