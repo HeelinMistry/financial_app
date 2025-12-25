@@ -45,7 +45,7 @@ jobs:
         id: xcov_report # Assign an ID to this step
         working-directory: financial_app
         # Adjust the settings below to match your project's structure and exclusion needs
-        run: |\
+        run: |
           xcov -w ./DerivedData \
                --scheme financial_app \
                --output_directory ./xcov_output \
