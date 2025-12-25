@@ -45,7 +45,7 @@ jobs:
           cd financial_app
           xcodebuild docbuild \
             -scheme financial_app \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
             -derivedDataPath doc_output
 
       - name: 📦 Archive Documentation
