@@ -19,29 +19,46 @@ jobs:
       - name: 🛎️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🛠️ Set Desired Xcode Version (Guaranteed Method)
+      - name: 🛠️ Set Desired Xcode Version
+        # Using the resilient, built-in method
+        run: xcodebuild -version # Confirm active Xcode version
+
+      # --- NEW STEP: Install xcov ---
+      - name: 💎 Install xcov
         run: |
-          # Use 'latest' to select the default, OR specify a version (e.g., Xcode_15.2.app)
-          # We use 'sudo' and 'xcode-select' to switch the system link
-          echo "Listing available Xcode versions:"
-          ls -F /Applications/ | grep Xcode
+          gem install xcov
 
-          # 🚨 FIX: Set the path to the desired Xcode version
-          # Assuming you want to use the default or the latest installed version:
-          # If you needed 15.2 specifically, you would use:
-          # sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
-
-          # For macos-latest, the default is usually the newest stable one.
-          # We simply ensure the default is selected, or you can uncomment the line below.
-          # sudo xcode-select -s /Applications/Xcode_<YOUR_VERSION>.app/Contents/Developer
-
-          xcodebuild -version # Confirm which version is active
-
-      - name: 🏃 Run Unit Tests
+      - name: 🏃 Run Unit Tests and Generate Raw Coverage Data
+        # We specify the -derivedDataPath so xcov knows where to look.
         run: |
           cd financial_app
           xcodebuild test \
             -scheme financial_app \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             -enableCodeCoverage YES \
-            clean build | xcpretty
+            -derivedDataPath ./DerivedData \
+            clean build | xcpretty # Keep xcpretty for clean console output
+        # The raw .profdata and .json files are now in ./DerivedData
+
+      # --- NEW STEP: Generate xcov Report ---
+      - name: 📝 Generate and Output xcov Report
+        id: xcov_report # Assign an ID to this step
+        # Adjust the settings below to match your project's structure and exclusion needs
+        run: |
+          cd financial_app
+          xcov -w ./DerivedData \
+               --scheme financial_app \
+               --output_directory ./xcov_output \
+               --minimum_coverage 80 \
+               --slack_endpoint '' # Prevents error if xcov tries to connect to slack
+        env:
+          # This helps xcov find the raw data from xcodebuild
+          XCODE_DERIVED_DATA_PATH: ./DerivedData
+
+      # --- NEW STEP: Upload Report as Artifact ---
+      - name: 📦 Upload Coverage Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodeCoverageReport
+          path: ./xcov_output/index.html # Upload the generated HTML report
+          retention-days: 5
