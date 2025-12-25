@@ -25,7 +25,7 @@
 		F337F35D2EFD4E78002EBC16 /* Exceptions for "financial_appTests" folder in "financial_app" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Mocks/MockApiService.swift,
+				Mocks/MockAPIService.swift,
 				Mocks/MockCoordinator.swift,
 			);
 			target = F3437B5A2EFC09100043494A /* financial_app */;
@@ -33,7 +33,7 @@
 		F337F35E2EFD4E78002EBC16 /* Exceptions for "financial_appTests" folder in "financial_appTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Mocks/MockApiService.swift,
+				Mocks/MockAPIService.swift,
 				Mocks/MockCoordinator.swift,
 			);
 			target = F337F3532EFD4E47002EBC16 /* financial_appTests */;

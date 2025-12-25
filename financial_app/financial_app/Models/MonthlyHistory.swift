@@ -23,4 +23,14 @@ struct MonthlyHistory: Identifiable, Decodable, Hashable {
         case monthKey, openingBalance, contribution, closingBalance, exchangeRate
         case interestRate, termsLeft
     }
+    
+    init(monthKey: String, openingBalance: Double, contribution: Double, closingBalance: Double, exchangeRate: Double, interestRate: Double? = nil, termsLeft: Int? = nil) {
+        self.monthKey = monthKey
+        self.openingBalance = openingBalance
+        self.contribution = contribution
+        self.closingBalance = closingBalance
+        self.exchangeRate = exchangeRate
+        self.interestRate = interestRate
+        self.termsLeft = termsLeft
+    }
 }

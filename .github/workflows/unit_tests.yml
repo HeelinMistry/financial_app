@@ -49,8 +49,7 @@ jobs:
           xcov -w ./DerivedData \
                --scheme financial_app \
                --output_directory ./xcov_output \
-               --minimum_coverage 80 \
-               --slack_endpoint '' # Prevents error if xcov tries to connect to slack
+               --minimum_coverage 80 
         env:
           # This helps xcov find the raw data from xcodebuild
           XCODE_DERIVED_DATA_PATH: ./DerivedData
