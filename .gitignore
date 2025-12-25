@@ -60,3 +60,7 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+financial_app/financial_app.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+financial_app/financial_app/.DS_Store
+financial_app/.DS_Store
+.DS_Store
