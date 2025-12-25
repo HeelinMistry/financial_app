@@ -29,9 +29,9 @@ jobs:
           gem install xcov
 
       - name: 🏃 Run Unit Tests and Generate Raw Coverage Data
+        working-directory: financial_app
         # We specify the -derivedDataPath so xcov knows where to look.
         run: |
-          cd financial_app
           xcodebuild test \
             -scheme financial_app \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
@@ -43,13 +43,13 @@ jobs:
       # --- NEW STEP: Generate xcov Report ---
       - name: 📝 Generate and Output xcov Report
         id: xcov_report # Assign an ID to this step
+        working-directory: financial_app
         # Adjust the settings below to match your project's structure and exclusion needs
-        run: |
-          cd financial_app
+        run: |\
           xcov -w ./DerivedData \
                --scheme financial_app \
                --output_directory ./xcov_output \
-               --minimum_coverage 80 
+               --minimum_coverage 80
         env:
           # This helps xcov find the raw data from xcodebuild
           XCODE_DERIVED_DATA_PATH: ./DerivedData

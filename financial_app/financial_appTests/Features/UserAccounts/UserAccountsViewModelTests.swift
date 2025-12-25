@@ -7,12 +7,12 @@
 
 import XCTest
 import Combine
-@testable import financial_app // Adjust to your project name
+@testable import financial_app
 
-@MainActor // Use @MainActor for consistency, as established in the previous thread
-final class UserAccountsViewModelTests: XCTestCase {
+@MainActor
+class UserAccountsViewModelTests: XCTestCase {
     
-    var mockAPIService: MockAPIService!
+    var mockAPIService: APIServicing!
     var sut: UserAccountsViewModel!
     private var cancellables: Set<AnyCancellable>!
     
@@ -91,10 +91,8 @@ final class UserAccountsViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
         
-        // 4. Act
         sut.fetchUserAccounts()
         XCTAssertTrue(sut.isLoading, "Loading should be true immediately after call")
-        
         wait(for: [expectation], timeout: 1.0)
     }
     
@@ -114,22 +112,16 @@ final class UserAccountsViewModelTests: XCTestCase {
             .sink { errorMessage in
                 
                 // 3. Assert (After pipeline delivers the error)
-                XCTAssertFalse(self.sut.isLoading, "Loading should be false after failure")
-                
-                // 🚨 Crucial: Check the error message content
+                XCTAssertFalse(self.sut.isLoading, "Loading should be false after failure")\
                 XCTAssertEqual(errorMessage, mockError.localizedDescription, "Error message must match the mock error description")
-                
-                // Check that the accounts array remains empty
                 XCTAssertTrue(self.sut.accounts.isEmpty, "Accounts array must remain empty on failure")
                 
                 expectation.fulfill()
             }
             .store(in: &cancellables)
         
-        // 4. Act
         sut.fetchUserAccounts()
         XCTAssertTrue(sut.isLoading, "Loading should be true immediately after call")
-        
         wait(for: [expectation], timeout: 1.0)
     }
 }
