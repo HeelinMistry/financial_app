@@ -1,0 +1,48 @@
+name: 📖 Documentation Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
+
+jobs:
+  build-docs:
+    runs-on: macos-latest
+
+    steps:
+      - name: 🛎️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Select Xcode Version
+        uses: developer-tools/using-xcode-action@v3
+        with:
+          xcode-version: 'latest'
+
+      - name: 📝 Build DocC Documentation Archive
+        # DocC is triggered using the 'docbuild' action
+        run: |
+          cd financial_app
+          xcodebuild docbuild \
+            -scheme financial_app \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -derivedDataPath doc_output
+
+      - name: 📦 Archive Documentation
+        # Zip the output for easy viewing/uploading
+        run: |
+          # Navigate to the Derived Data path to find the .doccarchive
+          DOC_PATH="./doc_output/Build/Products/Debug-iphonesimulator/financial_app.doccarchive"
+          if [ -d "$DOC_PATH" ]; then
+            zip -r documentation.zip "$DOC_PATH"
+          else
+            echo "DocC archive not found at $DOC_PATH"
+            exit 1
+          fi
+
+      - name: ⬆️ Upload Documentation Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocC-Archive
+          path: documentation.zip
+          retention-days: 7 # How long to keep the artifact

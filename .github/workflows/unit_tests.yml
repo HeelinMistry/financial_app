@@ -1,0 +1,40 @@
+name: 🧪 Unit Tests
+
+on:
+  # Trigger on push to main and all pull requests
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  run-tests:
+    # macOS runners are required to run Xcode/Swift tests
+    runs-on: macos-latest
+
+    steps:
+      - name: 🛎️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Select Xcode Version
+        # Recommended action to ensure the correct Xcode version is used
+        uses: developer-tools/using-xcode-action@v3
+        with:
+          # Match this to the version your project uses (e.g., 15.2)
+          # Use 'latest' for the newest available version on the runner
+          xcode-version: 'latest'
+
+      - name: 🏃 Run Unit Tests
+        run: |
+          cd financial_app
+          # Replace 'financial_app' with your project name or scheme name
+          # Replace 'financial_appTests' with your specific test target name
+          xcodebuild test \
+            -scheme financial_app \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -enableCodeCoverage YES \
+            clean build | xcpretty
