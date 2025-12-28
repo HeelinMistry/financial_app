@@ -70,20 +70,20 @@ class LoginViewModelTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
     
-    func testLogin_APIFailure_SetsErrorMessageAndClearsLoading() {
+    func testLogin_APIFailure_PresentToastFailureAndClearsLoading() {
         mockAPIService.shouldSucceed = false
         let mockError: APIError = .serverError(statusCode: 401, message: "Unauthorized")
         mockAPIService.mockError = mockError
         
-        let expectation = XCTestExpectation(description: "Login failed and error message set")
-        sut.$errorMessage
+        let expectation = XCTestExpectation(description: "Login failed and error toast set")
+        sut.$isLoading
             .dropFirst() // Ignore the initial nil value set in setUp()
-            .compactMap { $0 } // Only let non-nil values through
-            .sink { errorMessage in
-                XCTAssertNotNil(errorMessage, "Error message must be set on failure.")
-                XCTAssertFalse(self.sut.isLoading, "Loading should be false after failure.")
+            .filter { $0 == false } // 🚨 Wait until isLoading transitions back to FALSE
+            .sink { isLoading in
+                XCTAssertFalse(isLoading, "Loading should be false after failure.")
                 XCTAssertNil(AuthManager.shared.token, "AuthManager token should not be set on failure.")
                 XCTAssertNil(self.mockCoordinator.lastDestination, "Should not navigate on failure.")
+                XCTAssertTrue(self.mockCoordinator.presentFailureToastCalled, "Should be called")
                 
                 expectation.fulfill()
             }

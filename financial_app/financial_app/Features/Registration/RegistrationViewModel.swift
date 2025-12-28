@@ -39,7 +39,7 @@ final class RegistrationViewModel: ObservableObject {
         isLoading = true
         
         let registerData = LoginData(name: user)
-        let endpoint = APIEndpoint.register(data: registerData)
+        let endpoint = APIEndpoint.register(registerData)
         
         apiService.request(endpoint: endpoint) // Expecting TokenResponse (or Int, based on your code)
             .receive(on: DispatchQueue.main)

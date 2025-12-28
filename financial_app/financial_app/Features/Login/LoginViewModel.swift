@@ -59,36 +59,22 @@ class LoginViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         let loginData = LoginData(name: user)
-        let endpoint = APIEndpoint.login(data: loginData)
+        let endpoint = APIEndpoint.login(loginData)
         
         apiService.request(endpoint: endpoint) // Expecting TokenResponse
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                self?.isLoading = false
                 switch completion {
-                case .failure(let error):
-                    // Use your custom APIError type for specific messages
-                    self?.errorMessage = error.localizedDescription
-                    self?.showLoginFailedAlert()
+                case .failure(_):
+                    self?.coordinator?.presentFailureToast(message: "Login Failed.")
                 case .finished:
                     break
                 }
+                self?.isLoading = false
             } receiveValue: { [weak self] (tokenResponse: TokenResponse) in
                 AuthManager.shared.setToken(tokenResponse.token)
                 self?.coordinator?.navigate(to: .userAccounts)
             }
             .store(in: &cancellables)
-    }
-    
-    /**
-     Shows an alert with the error message
-     */
-    func showLoginFailedAlert() {
-        if let errorMessage {
-            coordinator?.navigate(to: .presentAlert(
-                title: "Login Failed",
-                message: errorMessage
-            ))
-        }
     }
 }

@@ -23,9 +23,6 @@ class UserAccountsViewModel: ObservableObject {
     /// The loading indicator when API service loading
     @Published var isLoading = false
     
-    /// The error message displayed by the API
-    @Published var errorMessage: String?
-    
     weak var coordinator: (any Coordinator)?
     private let apiService: APIServicing
     private var cancellables = Set<AnyCancellable>()
@@ -33,6 +30,20 @@ class UserAccountsViewModel: ObservableObject {
     init(apiService: APIServicing = APIService.shared, coordinator: (any Coordinator)?) {
         self.apiService = apiService
         self.coordinator = coordinator
+        setupBindings()
+    }
+    
+    private func setupBindings() {
+        guard let publisher = coordinator as? RefreshUserAccounts else { return }
+        
+        publisher.accountDidChange
+            .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                print("Account change detected. Fetching accounts...")
+                self?.fetchUserAccounts()
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Public Methods
@@ -46,17 +57,23 @@ class UserAccountsViewModel: ObservableObject {
      */
     func fetchUserAccounts() {
         isLoading = true
-        errorMessage = nil
         apiService.request(endpoint: .userAccounts)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                self?.isLoading = false
-                if case .failure(let error) = completion {
-                    self?.errorMessage = error.localizedDescription
+                if case .failure = completion {
+                    self?.coordinator?.presentFailureToast(message: "Could not retrieve user accounts")
                 }
+                self?.isLoading = false
             } receiveValue: { [weak self] (accounts: [Account]) in
                 self?.accounts = accounts
             }
             .store(in: &cancellables)
+    }
+    
+    /**
+     Initiates the create account flow
+     */
+    func showAddAccounts() {
+        coordinator?.navigate(to: .presentSheet(destination: .addAccount))
     }
 }

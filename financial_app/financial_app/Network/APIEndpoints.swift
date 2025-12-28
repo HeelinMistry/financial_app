@@ -15,9 +15,12 @@ enum HTTPMethod: String {
 }
 
 enum APIEndpoint {
-    case login(data: LoginData)
-    case register(data: LoginData)
+    case login(_ data: LoginData)
+    case register(_ data: LoginData)
     case userAccounts
+    case createAccount(_ data: AccountDetails)
+    case deleteAccount(_ data: Account)
+    case updateAccount(accountId: Int, requestData: MonthlyHistory)
     
     // Base URL for your server
     private var baseURL: String { "http://localhost:3000/api/" }
@@ -32,16 +35,27 @@ enum APIEndpoint {
             return "users/register"
         case .userAccounts:
             return "accounts"
+        case .createAccount:
+            return "accounts/create"
+        case .deleteAccount(let data):
+            return "accounts/\(data.id)"
+        case .updateAccount:
+            return "accounts/history"
         }
     }
     
     var method: HTTPMethod {
         switch self {
         case .login,
-                .register:
+                .register,
+                .createAccount:
             return .post
         case .userAccounts:
             return .get
+        case .deleteAccount:
+            return .delete
+        case .updateAccount:
+            return .put
         }
     }
     
@@ -58,12 +72,34 @@ enum APIEndpoint {
             case .register(let data):
                 let payload: [String: Any] = ["name": data.name]
                 return try? JSONSerialization.data(withJSONObject: payload, options: [])
+            case .createAccount(let data):
+                let payload: [String: Any] = [
+                    "name": data.name,
+                    "type": data.type.rawValue
+                ]
+                return try? JSONSerialization.data(withJSONObject: payload, options: [])
+                
             default:
                 return nil
             }
             
         case .put, .delete:
-            return nil // Placeholder, update as needed for specific endpoints
+            switch self {
+            case .updateAccount(let id, let data):
+                let payload: [String: Any] = [
+                    "accountId": id,
+                    "monthKey": data.monthKey,
+                    "openingBalance": data.openingBalance ?? 0.0,
+                    "contribution": data.contribution ?? 0.0,
+                    "closingBalance": data.closingBalance ?? 0.0,
+                    "exchangeRate": data.exchangeRate,
+                    "interestRate": data.interestRate as Any,
+                    "termsLeft": data.termsLeft as Any
+                ]
+                return try? JSONSerialization.data(withJSONObject: payload, options: [])
+            default:
+                return nil
+            }
         }
     }
     

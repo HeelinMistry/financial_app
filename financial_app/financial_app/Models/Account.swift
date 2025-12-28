@@ -7,8 +7,15 @@
 
 struct Account: Identifiable, Decodable, Hashable, Sendable {
     let id: Int // The account ID
-    let ownerId: String
+    let ownerId: Int
     let name: String
-    let type: String // e.g., "SAVING", "LOAN"
+    let type: AccountType // e.g., "SAVING", "LOAN"
     let monthlyHistory: [MonthlyHistory]
+}
+
+public enum AccountType: String, Decodable, Hashable, Identifiable, CaseIterable {
+    case SAVING
+    case LOAN
+    
+    public var id: String { self.rawValue }
 }

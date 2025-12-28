@@ -13,6 +13,7 @@ enum APIError: Error, LocalizedError {
     case decodingError(Error)
     case apiFailure(message: String) // For when "success" is false in the response
     case unknown(Error)
+    case noContentSuccess
 
     var errorDescription: String? {
         switch self {
@@ -26,6 +27,8 @@ enum APIError: Error, LocalizedError {
             return "API call failed (success: false). Message: \(message)"
         case .unknown(let error):
             return "An unknown error occurred: \(error.localizedDescription)"
+        case .noContentSuccess:
+            return "No Content with success: true"
         }
     }
 }

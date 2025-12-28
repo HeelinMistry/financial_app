@@ -14,6 +14,7 @@ class MockCoordinator: Coordinator {
     var lastDestination: Destination?
     
     var dismissedModal = false
+    var dismissedSheet = false
     var presentSuccessToastCalled = false
     var presentFailureToastCalled = false
     var lastToastMessage: String?
@@ -33,6 +34,10 @@ class MockCoordinator: Coordinator {
         dismissedModal = true
     }
     
+    func dismissSheet() {
+        dismissedSheet = true
+    }
+    
     func presentToast(style: Toast.ToastStyle, message: String) {}
     
     func presentSuccessToast(message: String) {
@@ -43,5 +48,14 @@ class MockCoordinator: Coordinator {
     func presentFailureToast(message: String) {
         presentFailureToastCalled = true
         lastToastMessage = message
+    }
+    
+    func presentConfirmationAlert(
+        title: String,
+        message: String,
+        confirmTitle: String,
+        confirmRole: ButtonRole,
+        confirmAction: @escaping () -> Void) {
+        
     }
 }

@@ -45,7 +45,7 @@ class APIService {
         if let error = error {
             print("❌ Error: \(error.localizedDescription)")
             if let apiError = error as? APIError {
-                 print("❌ APIError Type: \(apiError)")
+                print("❌ APIError Type: \(apiError)")
             }
         }
         
@@ -67,19 +67,39 @@ class APIService {
         
         // 2. Execute the request using URLSession
         return URLSession.shared.dataTaskPublisher(for: request)
-            
-            // 3. Map to Data or handle generic transport errors
+        
+        // 3. Map to Data or handle generic transport errors
             .tryMap { data, response in
                 self.debugLog(request: request, data: data, response: response, error: nil, stage: "Response Received")
                 // Check for HTTP status codes (4xx/5xx errors)
-                if let httpResponse = response as? HTTPURLResponse, !(200..<300).contains(httpResponse.statusCode) {
-                    let message = String(data: data, encoding: .utf8) ?? "No message"
-                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: message)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw URLError(.badServerResponse)
                 }
+                
+                // 🚨 1. Check for 204/205 Status Code
+                if (204...205).contains(httpResponse.statusCode) {
+                    // If the expected type is the placeholder AND the status is 204/205,
+                    // we treat the call as successful and return the minimal required data.
+                    if T.self == EmptyResponse.self {
+                        // Return an empty data set that can be successfully decoded
+                        // by the EmptyResponse struct (or just throw a custom success signal).
+                        throw APIError.noContentSuccess
+                    } else {
+                        // This scenario shouldn't happen, but good to check.
+                        throw APIError.apiFailure(message: "Unexpected empty response")
+                    }
+                }
+                
+                // 2. Check for other non-success status codes (4xx, 5xx)
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    throw APIError.serverError(statusCode: httpResponse.statusCode, message: httpResponse.description)
+                }
+                
+                // 3. For all other successful codes (200, 201, etc.), return the data for decoding
                 return data
             }
-            
-            // 4. Decode the data into the generic APIResponse wrapper
+        
+        // 4. Decode the data into the generic APIResponse wrapper
             .decode(type: APIResponse<T>.self, decoder: JSONDecoder())
             .mapError { error -> APIError in
                 // Map decoding errors to our custom APIError type
@@ -91,14 +111,14 @@ class APIService {
                 }
                 return APIError.unknown(error)
             }
-            
-            // 5. Check the "success" flag from the APIResponse
+        
+        // 5. Check the "success" flag from the APIResponse
             .flatMap { apiResponse -> AnyPublisher<T, APIError> in
                 if apiResponse.success {
                     // Success! Return the nested data
                     if let data = apiResponse.data {
                         return Just(data)
-                            .setFailureType(to: APIError.self) 
+                            .setFailureType(to: APIError.self)
                             .eraseToAnyPublisher()
                     } else {
                         return Fail(error: APIError.apiFailure(message: "No data returned from the API."))
@@ -110,7 +130,7 @@ class APIService {
                         .eraseToAnyPublisher()
                 }
             }
-            
+        
             .eraseToAnyPublisher()
     }
 }

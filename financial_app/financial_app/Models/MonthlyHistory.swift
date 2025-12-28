@@ -10,13 +10,13 @@ struct MonthlyHistory: Identifiable, Decodable, Hashable {
     var id: String { monthKey }
     
     let monthKey: String
-    let openingBalance: Double
-    let contribution: Double
-    let closingBalance: Double
-    let exchangeRate: Double
+    var openingBalance: Double?
+    var contribution: Double?
+    var closingBalance: Double?
+    var exchangeRate: Double
     // Only present for LOAN accounts
-    let interestRate: Double?
-    let termsLeft: Int?
+    var interestRate: Double?
+    var termsLeft: Int?
     
     // Use CodingKeys to handle optional properties gracefully
     private enum CodingKeys: String, CodingKey {
@@ -24,7 +24,7 @@ struct MonthlyHistory: Identifiable, Decodable, Hashable {
         case interestRate, termsLeft
     }
     
-    init(monthKey: String, openingBalance: Double, contribution: Double, closingBalance: Double, exchangeRate: Double, interestRate: Double? = nil, termsLeft: Int? = nil) {
+    init(monthKey: String, openingBalance: Double? = nil, contribution: Double? = nil, closingBalance: Double? = nil, exchangeRate: Double = 1.0, interestRate: Double? = nil, termsLeft: Int? = nil) {
         self.monthKey = monthKey
         self.openingBalance = openingBalance
         self.contribution = contribution

@@ -8,7 +8,7 @@
 import SwiftUI
 import Combine
 
-class AppCoordinator: Coordinator {
+class AppCoordinator: Coordinator, RefreshUserAccounts {    
     @Published var isAuthenticated: Bool = false
     
     @Published var navigationPath = NavigationPath() // Used for navigation stacks
@@ -17,13 +17,7 @@ class AppCoordinator: Coordinator {
     @Published var currentAlert: AlertItem?        // Used for alerts/popups
     @Published var currentToast: Toast?
     
-    // A simplified way to store alert data
-    struct AlertItem: Identifiable {
-        let id = UUID()
-        let title: Text
-        let message: Text
-        var dismissButton: Alert.Button? = .default(Text("OK"))
-    }
+    let accountDidChange = PassthroughSubject<Void, Never>()
     
     var sheetBinding: Binding<DestinationWrapper?> {
         Binding<DestinationWrapper?>(
@@ -66,25 +60,36 @@ class AppCoordinator: Coordinator {
         .environmentObject(self) // Pass the coordinator down the hierarchy
         .sheet(item: sheetBinding) { destinationWrapper in
             self.view(for: destinationWrapper.destination)
+                .presentationDetents([.medium, .large])
         }
         .fullScreenCover(item: modalBinding) { destinationWrapper in
             self.view(for: destinationWrapper.destination)
         }
         .alert(item: alertBinding) { alertItem in
-            Alert(title: alertItem.title,
-                  message: alertItem.message,
-                  dismissButton: alertItem.dismissButton)
+            guard let secondaryButton = alertItem.secondaryButton else  {
+                return Alert(
+                    title: alertItem.title,
+                    message: alertItem.message,
+                    dismissButton: alertItem.primaryButton
+                )
+            }
+            return Alert(
+                title: alertItem.title,
+                message: alertItem.message,
+                primaryButton: alertItem.primaryButton,
+                secondaryButton: secondaryButton
+            )
         }
         .overlay(alignment: .top) { // Use overlay for positioning
             if let toast = currentToast {
                 ToastView(toast: toast)
                     .transition(.move(edge: .top).combined(with: .opacity))
                 // Animation applied only to the toast's appearance/disappearance
-                    .animation(.easeInOut(duration: 0.3), value: currentToast)
+                    .animation(.easeInOut(duration: 0.3), value: toast)
             }
         }
         // Set animation value on the entire contentView for the overlay change
-        .animation(.default, value: currentToast) //
+        .animation(.default, value: currentToast)
     }
     
     func start() {
@@ -104,18 +109,12 @@ class AppCoordinator: Coordinator {
                 isAuthenticated = true
                 navigationPath = NavigationPath()
             }
-        case .registration:
-            break
-            //            if !AuthManager.shared.isAuthenticated {
-            //                isAuthenticated = false
-            //                navigationPath = NavigationPath()
-            //            }
         case .presentSheet(let childDestination):
             self.currentSheet = childDestination
         case .presentModal(let childDestination):
             self.currentModal = childDestination
-        case .presentAlert(let title, let message):
-            self.currentAlert = AlertItem(title: Text(title), message: Text(message))
+        default:
+            break
         }
     }
     
@@ -130,6 +129,10 @@ class AppCoordinator: Coordinator {
             UserAccountsView(viewModel: UserAccountsViewModel(coordinator: self))
         case .registration:
             RegistrationView(viewModel: RegistrationViewModel(coordinator: self))
+        case .addAccount:
+            AccountFormView(viewModel: AccountFormViewModel(coordinator: self))
+        case .updateAccountHistory(let account):
+            AccountHistoryFormView(viewModel: AccountHistoryFormViewModel(account: account, coordinator: self))
         default:
             Text("Unknown Destination")
         }
@@ -137,7 +140,10 @@ class AppCoordinator: Coordinator {
     
     func dismissModal() {
         self.currentModal = nil
-        
+    }
+    
+    func dismissSheet() {
+        self.currentSheet = nil
     }
     
     // MARK: - Toast Logic
@@ -159,5 +165,36 @@ class AppCoordinator: Coordinator {
     
     func presentFailureToast(message: String) {
         presentToast(style: .failure, message: message)
+    }
+    
+    // MARK: - Alert Logic (New Version)
+    
+    func presentConfirmationAlert(
+        title: String,
+        message: String,
+        confirmTitle: String,
+        confirmRole: ButtonRole,
+        confirmAction: @escaping () -> Void // 🚨 The code block for the primary action
+    ) {
+        var primaryButton: Alert.Button
+        switch confirmRole {
+        case .destructive:
+            primaryButton = Alert.Button.destructive(Text(confirmTitle)) {
+                confirmAction()
+            }
+        default:
+            primaryButton = Alert.Button.default(Text(confirmTitle)) {
+                confirmAction()
+            }
+        }
+            // 2. Define the Cancel/Secondary button
+        let secondaryButton = Alert.Button.cancel()
+        // 3. Create the new AlertItem with custom actions
+        self.currentAlert = AlertItem(
+            title: Text(title),
+            message: Text(message),
+            primaryAction: primaryButton,
+            secondaryAction: secondaryButton
+        )
     }
 }
