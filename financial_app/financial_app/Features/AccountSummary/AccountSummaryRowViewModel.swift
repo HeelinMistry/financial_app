@@ -33,8 +33,7 @@ final class AccountSummaryRowViewModel: ObservableObject {
     
     // 🚨 Action: Present the Edit Sheet
     func editAccount() {
-        guard let appCoordinator = coordinator as? AppCoordinator else { return }
-        appCoordinator.navigate(to: .presentSheet(destination: .updateAccountHistory(account: account)))
+        coordinator?.navigate(to: .presentSheet(destination: .updateAccountHistory(account: account)))
     }
     
     // 🚨 Action: Handle the API Delete Call
@@ -48,7 +47,6 @@ final class AccountSummaryRowViewModel: ObservableObject {
         apiService.request(endpoint: endpoint)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                self?.isDeleting = false
                 switch completion {
                 case .failure(let error):
                     switch error {
@@ -63,6 +61,7 @@ final class AccountSummaryRowViewModel: ObservableObject {
                 case .finished:
                     self?.coordinator?.presentSuccessToast(message: "Account '\(self?.account.name ?? "Account")' deleted.")
                 }
+                self?.isDeleting = false
             } receiveValue: { (data: EmptyResponse) in
             }
             .store(in: &cancellables) // Assume cancellables is defined

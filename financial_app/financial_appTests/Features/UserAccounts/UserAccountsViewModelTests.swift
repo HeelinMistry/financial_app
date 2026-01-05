@@ -123,4 +123,62 @@ class UserAccountsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isLoading, "Loading should be true immediately after call")
         wait(for: [expectation], timeout: 1.0)
     }
+    
+    func testFetchUserAccounts_RefreshAccounts_Trgiggered() {
+        let expectedAccounts: [Account] = [
+            Account(id: 1,
+                    ownerId: 1,
+                    name: "Test",
+                    type: .SAVING,
+                    monthlyHistory: [
+                        MonthlyHistory(
+                            monthKey: "2025-11",
+                            openingBalance: 100.00,
+                            contribution: 25.00,
+                            closingBalance: 200.0,
+                            exchangeRate: 1.0
+                        )
+                    ]),
+            Account(id: 1,
+                    ownerId: 2,
+                    name: "User",
+                    type: .LOAN,
+                    monthlyHistory: [
+                        MonthlyHistory(
+                            monthKey: "2025-11",
+                            openingBalance: 200.00,
+                            contribution: 50.00,
+                            closingBalance: 150.0,
+                            exchangeRate: 1.0
+                        )
+                    ])
+        ]
+        mockAPIService.mockData = expectedAccounts
+        mockAPIService.shouldSucceed = true
+        
+        let expectation = XCTestExpectation(description: "Accounts received and state updated")
+        
+        // 2. Observe: Wait for the isLoading state to transition back to false.
+        sut.$isLoading
+            .dropFirst() // Ignore the state change from false -> true
+            .sink { isLoading in
+                if !isLoading {
+                    // 3. Assert (After pipeline completes)
+                    XCTAssertFalse(isLoading, "Loading must be false after success")
+                    XCTAssertEqual(self.sut.accounts.count, 2, "Should receive 2 accounts")
+                    XCTAssertEqual(self.sut.accounts, expectedAccounts, "Received accounts should match mock data")
+
+                    expectation.fulfill()
+                }
+            }
+            .store(in: &cancellables)
+        
+        mockCoordinator.accountDidChange.send(())
+        wait(for: [expectation], timeout: 1.0)
+    }
+    
+    func testShowAccounts() {
+        sut.showAddAccounts()
+        XCTAssertEqual(self.mockCoordinator.lastDestination, Destination.presentSheet(destination: Destination.addAccount), "Should show the add account sheet")
+    }
 }

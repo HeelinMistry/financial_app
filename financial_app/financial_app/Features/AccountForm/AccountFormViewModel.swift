@@ -42,11 +42,9 @@ final class AccountFormViewModel: ObservableObject {
         )
         let endpoint = APIEndpoint.createAccount(accountDetails)
         
-        apiService.request(endpoint: endpoint) // Expecting TokenResponse (or Int, based on your code)
+        apiService.request(endpoint: endpoint) 
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                self?.isLoading = false
-                
                 switch completion {
                 case .failure:
                     self?.closeAccountsForm()
@@ -54,10 +52,10 @@ final class AccountFormViewModel: ObservableObject {
                 case .finished:
                     break
                 }
+                self?.isLoading = false
             } receiveValue: { [weak self] (data: Int) in
                 self?.closeAccountsForm()
                 guard let self = self,
-                      // 🚨 Safely cast the coordinator to the new protocol to access the publisher
                 let publisher = self.coordinator as? RefreshUserAccounts else { return }
                 publisher.accountDidChange.send()
                 coordinator?.presentSuccessToast(message: "Account created successfully!")

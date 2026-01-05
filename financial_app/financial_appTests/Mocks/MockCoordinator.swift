@@ -8,17 +8,20 @@
 import SwiftUI
 import Combine
 
-class MockCoordinator: Coordinator {
+class MockCoordinator: Coordinator, RefreshUserAccounts {
     
     var contentView: some View { Text("") }
     var lastDestination: Destination?
     
+    var didTriggerRefresh = false
     var dismissedModal = false
     var dismissedSheet = false
     var presentSuccessToastCalled = false
     var presentFailureToastCalled = false
     var lastToastMessage: String?
     
+    let accountDidChange = PassthroughSubject<Void, Never>()
+
     init() {}
     
     func start() {}
