@@ -31,7 +31,7 @@ class UserAccountsViewModel: ObservableObject {
     private var isFetching = false
     
     init(
-        repository: UserAccountsRepository = DefaultUserAccountsRepository(),
+        repository: UserAccountsRepository = DefaultUserAccountsRepository.shared,
         coordinator: (any Coordinator)?
     ) {
         self.repository = repository

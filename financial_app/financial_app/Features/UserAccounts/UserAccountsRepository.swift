@@ -7,6 +7,8 @@ protocol UserAccountsRepository {
 }
 
 final class DefaultUserAccountsRepository: UserAccountsRepository {
+    static let shared = DefaultUserAccountsRepository()
+    
     private let apiService: APIServicing
     private let cacheTTL: TimeInterval?
     private var cachedAccounts: [Account]?
