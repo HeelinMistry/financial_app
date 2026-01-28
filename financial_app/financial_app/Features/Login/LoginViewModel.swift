@@ -19,7 +19,7 @@ class LoginViewModel: ObservableObject {
     // MARK: - Published Properties
     
     /// The user entered by the user.
-    @Published var user = ""
+    @Published var user = "Heelin"
     
     /// Indicates whether an API request is currently in progress.
     @Published var isLoading = false
@@ -73,7 +73,7 @@ class LoginViewModel: ObservableObject {
                 self?.isLoading = false
             } receiveValue: { [weak self] (tokenResponse: TokenResponse) in
                 AuthManager.shared.setToken(tokenResponse.token)
-                self?.coordinator?.navigate(to: .userAccounts)
+                self?.coordinator?.navigate(to: .authenticated)
             }
             .store(in: &cancellables)
     }

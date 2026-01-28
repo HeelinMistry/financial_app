@@ -18,6 +18,7 @@
 
 /* Begin PBXFileReference section */
 		F337F3542EFD4E47002EBC16 /* financial_appTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = financial_appTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F339A0562F2A18CD005035E4 /* financial_app.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = financial_app.xctestplan; sourceTree = "<group>"; };
 		F3437B5B2EFC09100043494A /* financial_app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = financial_app.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -78,6 +79,7 @@
 		F3437B522EFC090F0043494A = {
 			isa = PBXGroup;
 			children = (
+				F339A0562F2A18CD005035E4 /* financial_app.xctestplan */,
 				F3437B5D2EFC09100043494A /* financial_app */,
 				F337F3552EFD4E47002EBC16 /* financial_appTests */,
 				F3437B5C2EFC09100043494A /* Products */,

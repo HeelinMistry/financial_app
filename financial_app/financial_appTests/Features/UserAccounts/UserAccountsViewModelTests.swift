@@ -14,6 +14,7 @@ class UserAccountsViewModelTests: XCTestCase {
     
     var mockAPIService: MockAPIService!
     var mockCoordinator: MockCoordinator! // A simple mock to track navigation calls
+    var repo: UserAccountsRepository!
     var sut: UserAccountsViewModel!
     private var cancellables: Set<AnyCancellable>!
     
@@ -21,7 +22,8 @@ class UserAccountsViewModelTests: XCTestCase {
         super.setUp()
         mockAPIService = MockAPIService()
         mockCoordinator = MockCoordinator()
-        sut = UserAccountsViewModel(apiService: mockAPIService, coordinator: mockCoordinator)
+        repo = DefaultUserAccountsRepository(apiService: mockAPIService)
+        sut = UserAccountsViewModel(repository: repo, coordinator: mockCoordinator)
         cancellables = Set<AnyCancellable>()
     }
     
@@ -109,8 +111,6 @@ class UserAccountsViewModelTests: XCTestCase {
             .dropFirst()
             .filter { $0 == false } // 🚨 Wait until isLoading transitions back to FALSE
             .sink { isLoading in
-                
-                // 3. Assert (After pipeline delivers the error)
                 XCTAssertFalse(isLoading, "Loading should be false after failure")
                 XCTAssertTrue(self.sut.accounts.isEmpty, "Accounts array must remain empty on failure")
                 XCTAssertTrue(self.mockCoordinator.presentFailureToastCalled, "Should be called")
@@ -118,8 +118,7 @@ class UserAccountsViewModelTests: XCTestCase {
                 expectation.fulfill()
             }
             .store(in: &cancellables)
-        
-        sut.fetchUserAccounts()
+        sut.fetchUserAccounts(forceRefresh: true)
         XCTAssertTrue(sut.isLoading, "Loading should be true immediately after call")
         wait(for: [expectation], timeout: 1.0)
     }

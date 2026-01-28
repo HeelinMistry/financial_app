@@ -8,16 +8,27 @@
 import SwiftUI
 import Combine
 
-class AppCoordinator: Coordinator, RefreshUserAccounts {    
+class AppCoordinator: Coordinator, RefreshUserAccounts {
     @Published var isAuthenticated: Bool = false
     
+    // Shared navigation path (you can split per tab if preferred)
     @Published var navigationPath = NavigationPath() // Used for navigation stacks
+    
+    // Presentation
     @Published var currentSheet: Destination?      // Used for sheets
     @Published var currentModal: Destination?
     @Published var currentAlert: AlertItem?        // Used for alerts/popups
     @Published var currentToast: Toast?
     
     let accountDidChange = PassthroughSubject<Void, Never>()
+    
+    // Tabs
+    enum AppTab: Hashable {
+        case summary
+        case userAccounts
+    }
+    // Default selected tab after login; change to .summary if you prefer that default
+    @Published var selectedTab: AppTab = .userAccounts
     
     var sheetBinding: Binding<DestinationWrapper?> {
         Binding<DestinationWrapper?>(
@@ -48,11 +59,38 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
         )
     }
     
+    // Explicit Bindings for @Published properties used inside this class’s views
+    private var selectedTabBinding: Binding<AppTab> {
+        Binding<AppTab>(
+            get: { self.selectedTab },
+            set: { self.selectedTab = $0 }
+        )
+    }
+    
+    private var navigationPathBinding: Binding<NavigationPath> {
+        Binding<NavigationPath>(
+            get: { self.navigationPath },
+            set: { self.navigationPath = $0 }
+        )
+    }
+    
     // Determines which screen to show first (e.g., based on authentication)
     var contentView: some View {
         Group {
             if isAuthenticated {
-                self.view(for: .userAccounts)
+                TabView(selection: selectedTabBinding) {
+                    tabView(for: .summary)
+                        .tabItem {
+                            Label("Summary", systemImage: "chart.pie.fill")
+                        }
+                        .tag(AppTab.summary)
+                    
+                    tabView(for: .userAccounts)
+                        .tabItem {
+                            Label("Accounts", systemImage: "list.bullet.rectangle")
+                        }
+                        .tag(AppTab.userAccounts)
+                }
             } else {
                 self.view(for: .login)
             }
@@ -84,11 +122,9 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
             if let toast = currentToast {
                 ToastView(toast: toast)
                     .transition(.move(edge: .top).combined(with: .opacity))
-                // Animation applied only to the toast's appearance/disappearance
                     .animation(.easeInOut(duration: 0.3), value: toast)
             }
         }
-        // Set animation value on the entire contentView for the overlay change
         .animation(.default, value: currentToast)
     }
     
@@ -104,10 +140,12 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
             AuthManager.shared.clearToken()
             isAuthenticated = false
             navigationPath = NavigationPath()
-        case .userAccounts:
+        case .authenticated:
             if AuthManager.shared.isAuthenticated {
                 isAuthenticated = true
                 navigationPath = NavigationPath()
+                // Default selected tab when routing here after login
+                selectedTab = .userAccounts
             }
         case .presentSheet(let childDestination):
             self.currentSheet = childDestination
@@ -133,10 +171,40 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
             AccountFormView(viewModel: AccountFormViewModel(coordinator: self))
         case .updateAccountHistory(let account):
             AccountHistoryFormView(viewModel: AccountHistoryFormViewModel(account: account, coordinator: self))
+        // Optional: If you add Destination.summary, handle it here
+        case .summary:
+            // Replace with your actual SummaryView + ViewModel if available
+            EmptyView()
+//            SummaryView(viewModel: SummaryViewModel(coordinator: self))
         default:
             Text("Unknown Destination")
         }
     }
+    
+    // Helper to embed each tab in a NavigationStack
+    @ViewBuilder
+    private func tabView(for tab: AppTab) -> some View {
+        switch tab {
+        case .summary:
+            NavigationStack(path: navigationPathBinding) {
+                // Prefer using Destination.summary if defined; otherwise placeholder
+                if summarySupported {
+                    view(for: .summary)
+                        .navigationTitle("Summary")
+                } else {
+                    Text("Summary")
+                        .navigationTitle("Summary")
+                }
+            }
+        case .userAccounts:
+            NavigationStack(path: navigationPathBinding) {
+                view(for: .userAccounts)
+            }
+        }
+    }
+    
+    // Toggle to true once you add Destination.summary
+    private var summarySupported: Bool { true }
     
     func dismissModal() {
         self.currentModal = nil
@@ -187,7 +255,7 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
                 confirmAction()
             }
         }
-            // 2. Define the Cancel/Secondary button
+        // 2. Define the Cancel/Secondary button
         let secondaryButton = Alert.Button.cancel()
         // 3. Create the new AlertItem with custom actions
         self.currentAlert = AlertItem(
@@ -198,3 +266,4 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
         )
     }
 }
+

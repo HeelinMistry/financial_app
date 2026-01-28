@@ -4,7 +4,7 @@
  upon successful account loading.
  
  The authentication process involves:
- 1. Calling the `APIService` via the Combine pipeline.
+ 1. Calling the `UserAccountsRepository` (which uses APIService) via Combine.
  2. Storing the received `[Account]`.
  
  - Author: Heelin
@@ -20,15 +20,21 @@ class UserAccountsViewModel: ObservableObject {
     /// The user accounts.
     @Published var accounts: [Account] = []
     
-    /// The loading indicator when API service loading
+    /// The loading indicator when repository loading
     @Published var isLoading = false
     
     weak var coordinator: (any Coordinator)?
-    private let apiService: APIServicing
+    private let repository: UserAccountsRepository
     private var cancellables = Set<AnyCancellable>()
     
-    init(apiService: APIServicing = APIService.shared, coordinator: (any Coordinator)?) {
-        self.apiService = apiService
+    // Used to prevent redundant UI-triggered loads (e.g., onAppear firing twice)
+    private var isFetching = false
+    
+    init(
+        repository: UserAccountsRepository = DefaultUserAccountsRepository(),
+        coordinator: (any Coordinator)?
+    ) {
+        self.repository = repository
         self.coordinator = coordinator
         setupBindings()
     }
@@ -40,8 +46,8 @@ class UserAccountsViewModel: ObservableObject {
             .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                print("Account change detected. Fetching accounts...")
-                self?.fetchUserAccounts()
+                print("Account change detected. Fetching accounts (force refresh)...")
+                self?.fetchUserAccounts(forceRefresh: true)
             }
             .store(in: &cancellables)
     }
@@ -50,20 +56,25 @@ class UserAccountsViewModel: ObservableObject {
     
     /**
      Initiates the user accounts process by executing the
-     API request via the injected `APIService`.
+     repository request, which caches and de-duplicates network calls.
      
      On success: Stores the accounts.
      On failure: Sets the `errorMessage` and clears the loading state.
      */
-    func fetchUserAccounts() {
+    func fetchUserAccounts(forceRefresh: Bool = false) {
+        // Avoid flipping UI state multiple times if an identical fetch is already in progress
+        if isFetching { return }
+        isFetching = true
         isLoading = true
-        apiService.request(endpoint: .userAccounts)
+        
+        repository.accounts(forceRefresh: forceRefresh)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 if case .failure = completion {
                     self?.coordinator?.presentFailureToast(message: "Could not retrieve user accounts")
                 }
                 self?.isLoading = false
+                self?.isFetching = false
             } receiveValue: { [weak self] (accounts: [Account]) in
                 self?.accounts = accounts
             }

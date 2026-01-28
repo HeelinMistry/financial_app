@@ -59,7 +59,7 @@ class LoginViewModelTests: XCTestCase {
                 if !isLoading {
                     // 3. Assert (After pipeline completes)
                     XCTAssertEqual(AuthManager.shared.token, expectedToken, "AuthManager should have the correct token")
-                    XCTAssertEqual(self.mockCoordinator.lastDestination, .userAccounts, "Should navigate to main app flow")
+                    XCTAssertEqual(self.mockCoordinator.lastDestination, .authenticated, "Should navigate to main app flow")
                     XCTAssertNil(self.sut.errorMessage, "Error message should be nil on success")
                     
                     expectation.fulfill()

@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "B99338E1-8D00-460F-9EAF-268D6E24C21A",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:financial_app.xcodeproj",
+      "identifier" : "F3437B5A2EFC09100043494A",
+      "name" : "financial_app"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:financial_app.xcodeproj",
+        "identifier" : "F337F3532EFD4E47002EBC16",
+        "name" : "financial_appTests"
+      }
+    }
+  ],
+  "version" : 1
+}

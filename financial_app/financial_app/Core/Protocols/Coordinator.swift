@@ -42,6 +42,8 @@ protocol Coordinator: ObservableObject {
 enum Destination: Hashable {
     case registration
     case login
+    case authenticated
+    case summary
     case userAccounts
     case addAccount
     case updateAccountHistory(account: Account)
