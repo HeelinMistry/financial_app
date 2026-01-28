@@ -171,11 +171,8 @@ class AppCoordinator: Coordinator, RefreshUserAccounts {
             AccountFormView(viewModel: AccountFormViewModel(coordinator: self))
         case .updateAccountHistory(let account):
             AccountHistoryFormView(viewModel: AccountHistoryFormViewModel(account: account, coordinator: self))
-        // Optional: If you add Destination.summary, handle it here
         case .summary:
-            // Replace with your actual SummaryView + ViewModel if available
-            EmptyView()
-//            SummaryView(viewModel: SummaryViewModel(coordinator: self))
+            SummaryView(viewModel: SummaryViewModel(coordinator: self))
         default:
             Text("Unknown Destination")
         }
