@@ -20,11 +20,8 @@ struct MonthlyHorizontalPicker: View {
                 HStack(spacing: 8) {
                     ForEach(months, id: \.self) { month in
                         Button {
-                            // 1. Update the ViewModel's selection
                             selectedMonth = month
                             onMonthSelected(month)
-                            // 2. Trigger the dependent history update logic
-//                                    viewModel.updateSelectedMonth(with: monthYear)
                         } label: {
                             HStack(spacing: 6) {
 //                                        if viewModel.historyExists(for: monthYear) {
